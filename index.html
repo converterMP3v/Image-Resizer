@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Resizer</title>
+</head>
+<body>
+    <h2>Upload and Resize Your Image</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <br><br>
+    <label>Width:</label>
+    <input type="number" id="width" placeholder="Enter width">
+    <label>Height:</label>
+    <input type="number" id="height" placeholder="Enter height">
+    <br><br>
+    <label>Output Format:</label>
+    <select id="format">
+        <option value="jpeg">JPEG</option>
+        <option value="jpg">JPG</option>
+        <option value="png">PNG</option>
+        <option value="pdf">PDF</option>
+    </select>
+    <br><br>
+    <button onclick="resizeImage()">Resize & Download</button>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <script>
+        function resizeImage() {
+            let fileInput = document.getElementById("imageInput").files[0];
+            let width = document.getElementById("width").value;
+            let height = document.getElementById("height").value;
+            let format = document.getElementById("format").value;
+
+            if (!fileInput) {
+                alert("Please upload an image.");
+                return;
+            }
+
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                let img = new Image();
+                img.onload = function() {
+                    let canvas = document.getElementById("canvas");
+                    let ctx = canvas.getContext("2d");
+                    canvas.width = width || img.width;
+                    canvas.height = height || img.height;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    let link = document.createElement("a");
+                    link.download = "resized-image." + format;
+                    if (format === "pdf") {
+                        let pdf = new jsPDF();
+                        pdf.addImage(canvas.toDataURL("image/jpeg"), "JPEG", 10, 10, canvas.width / 5, canvas.height / 5);
+                        pdf.save("resized-image.pdf");
+                    } else {
+                        link.href = canvas.toDataURL("image/" + format);
+                        link.click();
+                    }
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(fileInput);
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+</body>
+</html>
